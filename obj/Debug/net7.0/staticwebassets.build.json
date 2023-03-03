@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "5f71YkK2lRQi8wz+3pe78dd1zMbwF7Ww9WTGbgRYpXQ=",
+  "Source": "Api.Ficha.Tecnica.ChatGPT",
+  "BasePath": "_content/Api.Ficha.Tecnica.ChatGPT",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
