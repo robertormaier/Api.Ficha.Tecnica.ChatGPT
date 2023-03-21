@@ -11,6 +11,7 @@ namespace Api.Ficha.Tecnica.ChatGPT.Controllers
     [Route("api/[controller]")]
     public class FichaTecnicaController : ControllerBase
     {
+        private const string OpenAiApiUrl = "https://api.openai.com/v1/completions";
         private readonly HttpClient _httpClient;
 
         public FichaTecnicaController(HttpClient httpClient)
@@ -21,21 +22,29 @@ namespace Api.Ficha.Tecnica.ChatGPT.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(string texto, [FromServices] IConfiguration configuration)
         {
-            var result = await RealizaRequestParaApiChatGPTAsync(texto, configuration);
+            try
+            {
+                var result = await SendRequestToOpenAiApiAsync(texto, configuration);
 
-            return Ok(result.choices.First().text.Replace("\n", " ").Replace("\t", " "));
+                return Ok(result.choices.First().text.Replace("\n", " ").Replace("\t", " "));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
 
-        private async Task<ChatGptResponse> RealizaRequestParaApiChatGPTAsync(string texto, IConfiguration configuration)
+        private async Task<ChatGptResponse> SendRequestToOpenAiApiAsync(string texto, IConfiguration configuration)
         {
-            StringContent content = MontarRequest(texto, configuration);
-
-            var response = await _httpClient.PostAsync("https://api.openai.com/v1/completions", content);
-
-            return await response.Content.ReadFromJsonAsync<ChatGptResponse>();
+            using (var content = CreateRequestContent(texto, configuration))
+            using (var response = await _httpClient.PostAsync(OpenAiApiUrl, content))
+            {
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<ChatGptResponse>();
+            }
         }
 
-        private StringContent MontarRequest(string texto, IConfiguration configuration)
+        private StringContent CreateRequestContent(string texto, IConfiguration configuration)
         {
             var toke = configuration.GetValue<string>("ChatGPTSecretKey");
 
@@ -46,8 +55,8 @@ namespace Api.Ficha.Tecnica.ChatGPT.Controllers
 
             var requestBody = JsonSerializer.Serialize(model);
 
-            var content = new StringContent(requestBody, Encoding.UTF8, "´8application/json");
-            return content;
+            return new StringContent(requestBody, Encoding.UTF8, "application/json");
         }
     }
+
 }
