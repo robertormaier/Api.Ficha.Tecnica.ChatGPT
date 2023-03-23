@@ -36,12 +36,10 @@ namespace Api.Ficha.Tecnica.ChatGPT.Controllers
 
         private async Task<ChatGptResponse> SendRequestToOpenAiApiAsync(string texto, IConfiguration configuration)
         {
-            using (var content = CreateRequestContent(texto, configuration))
-            using (var response = await _httpClient.PostAsync(OpenAiApiUrl, content))
-            {
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadFromJsonAsync<ChatGptResponse>();
-            }
+            using var content = CreateRequestContent(texto, configuration);
+            using var response = await _httpClient.PostAsync(OpenAiApiUrl, content);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<ChatGptResponse>();
         }
 
         private StringContent CreateRequestContent(string texto, IConfiguration configuration)
